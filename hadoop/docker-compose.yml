@@ -12,11 +12,10 @@ services:
     image: apache/hadoop:3.3.6
     container_name: hadoop-namenode
     hostname: namenode
-    command: ["hdfs", "namenode"]
     user: root
+    command: ["/bin/bash", "/opt/format-check.sh"]
     environment:
       HADOOP_HOME: /opt/hadoop
-      ENSURE_NAMENODE_DIR: "/tmp/hadoop-hadoop/dfs/name"
       CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
       CORE-SITE.XML_hadoop.http.staticuser.user: root
       HDFS-SITE.XML_dfs.replication: 1
@@ -27,7 +26,8 @@ services:
       - "9870:9870"
       - "9000:9000"
     volumes:
-      - hadoop-namenode:/tmp/hadoop-hadoop
+      - hadoop-namenode:/tmp/hadoop-root
+      - ./format-check.sh:/opt/format-check.sh
     networks:
       - hadoop_net
     restart: unless-stopped
@@ -45,7 +45,7 @@ services:
       HDFS-SITE.XML_dfs.permissions: "false"
       HDFS-SITE.XML_dfs.namenode.datanode.registration.ip-hostname-check: "false"
     volumes:
-      - hadoop-datanode:/tmp/hadoop-hadoop
+      - hadoop-datanode:/tmp/hadoop-root
     networks:
       - hadoop_net
     depends_on:
