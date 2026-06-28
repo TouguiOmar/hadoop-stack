@@ -46,6 +46,10 @@ bash scripts/health.sh
 | HDFS NameNode | http://localhost:9870 |
 | YARN ResourceManager | http://localhost:8088 |
 
+# List root directory
+docker exec hadoop-namenode hdfs dfs -ls /
+
+
 ## Configuration
 Edit `.env` to customize memory limits, replication factor, and cluster name.
 
