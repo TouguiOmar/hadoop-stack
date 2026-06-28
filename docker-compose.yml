@@ -1,0 +1,77 @@
+version: '3.8'
+
+networks:
+  hadoop_net:
+    driver: bridge
+
+services:
+
+  namenode:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-namenode
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+      CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
+      CORE-SITE.XML_hadoop.http.staticuser.user: root
+      HDFS-SITE.XML_dfs.replication: 1
+      HDFS-SITE.XML_dfs.permissions: "false"
+      HDFS-SITE.XML_dfs.namenode.rpc-address: namenode:9000
+      HDFS-SITE.XML_dfs.namenode.datanode.registration.ip-hostname-check: "false"
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    restart: unless-stopped
+
+  datanode:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-datanode
+    hostname: datanode
+    command: ["hdfs", "datanode"]
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
+      HDFS-SITE.XML_dfs.replication: 1
+      HDFS-SITE.XML_dfs.permissions: "false"
+      HDFS-SITE.XML_dfs.namenode.datanode.registration.ip-hostname-check: "false"
+    depends_on:
+      - namenode
+    restart: unless-stopped
+
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-resourcemanager
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
+      YARN-SITE.XML_yarn.resourcemanager.hostname: resourcemanager
+      YARN-SITE.XML_yarn.nodemanager.aux-services: mapreduce_shuffle
+      YARN-SITE.XML_yarn.nodemanager.vmem-check-enabled: "false"
+      YARN-SITE.XML_yarn.nodemanager.pmem-check-enabled: "false"
+    ports:
+      - "8088:8088"
+    depends_on:
+      - namenode
+    restart: unless-stopped
+
+  nodemanager:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-nodemanager
+    hostname: nodemanager
+    command: ["yarn", "nodemanager"]
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
+      YARN-SITE.XML_yarn.resourcemanager.hostname: resourcemanager
+      YARN-SITE.XML_yarn.nodemanager.aux-services: mapreduce_shuffle
+      YARN-SITE.XML_yarn.nodemanager.vmem-check-enabled: "false"
+      YARN-SITE.XML_yarn.nodemanager.pmem-check-enabled: "false"
+      YARN-SITE.XML_yarn.nodemanager.resource.memory-mb: 4096
+      YARN-SITE.XML_yarn.nodemanager.resource.cpu-vcores: 4
+    depends_on:
+      - resourcemanager
+    restart: unless-stopped
