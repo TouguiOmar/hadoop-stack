@@ -3,17 +3,29 @@
 Production-ready Hadoop ecosystem stack using official Apache Docker images.
 
 ## Stack
-| Component | Role |
-|---|---|
-| HDFS NameNode | Manages filesystem metadata |
-| HDFS DataNode | Stores actual data blocks |
-| YARN ResourceManager | Manages cluster resources |
-| YARN NodeManager | Runs application containers |
+
+| Component | Version | Role |
+|---|---|---|
+| HDFS NameNode | Hadoop 3.3.6 | Manages filesystem metadata |
+| HDFS DataNode | Hadoop 3.3.6 | Stores actual data blocks |
+| YARN ResourceManager | Hadoop 3.3.6 | Manages cluster resources |
+| YARN NodeManager | Hadoop 3.3.6 | Runs application containers |
+
+## Roadmap
+
+| Component | Version | Status |
+|---|---|---|
+| Apache Spark | 3.5.1 | 🔜 Coming next |
+| Apache Hive | 4.0.0 | 🔜 Planned |
+| Apache Kafka | 7.6.0 | 🔜 Planned |
+| Apache Flink | 1.19 | 🔜 Planned |
+| Apache Airflow | 2.9.1 | 🔜 Planned |
+| Grafana | 10.4.0 | 🔜 Planned |
 
 ## Requirements
 - Docker Engine 24+
 - Docker Compose v2+
-- 8 GB RAM minimum
+- 8 GB RAM minimum (24 GB recommended for full stack)
 
 ## Quick Start
 ```bash
@@ -28,6 +40,7 @@ bash scripts/health.sh
 ```
 
 ## Access
+
 | UI | URL |
 |---|---|
 | HDFS NameNode | http://localhost:9870 |
