@@ -1,11 +1,14 @@
 #!/bin/bash
-echo "=== Hadoop Stack Health Check ==="
-echo ""
-echo "--- Containers ---"
-docker compose ps
-echo ""
-echo "--- HDFS Report ---"
-docker exec hadoop-namenode hdfs dfsadmin -report
-echo ""
-echo "--- YARN Nodes ---"
-docker exec hadoop-resourcemanager yarn node -list
+# ═══════════════════════════════════════════
+#  Health check for all stack components
+# ═══════════════════════════════════════════
+
+echo "► Hadoop health..."
+cd "$(dirname "$0")/../hadoop" && bash scripts/health.sh && cd -
+
+# Future components (uncomment as they are added):
+# echo "► Hive health..."
+# cd "$(dirname "$0")/../hive" && bash scripts/health.sh && cd -
+
+# echo "► Spark health..."
+# cd "$(dirname "$0")/../spark" && bash scripts/health.sh && cd -

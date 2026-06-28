@@ -7,14 +7,16 @@ volumes:
   hadoop-datanode:
 
 services:
+
   namenode:
     image: apache/hadoop:3.3.6
     container_name: hadoop-namenode
     hostname: namenode
     command: ["hdfs", "namenode"]
+    user: root
     environment:
       HADOOP_HOME: /opt/hadoop
-      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-hadoop/dfs/name"
       CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
       CORE-SITE.XML_hadoop.http.staticuser.user: root
       HDFS-SITE.XML_dfs.replication: 1
@@ -25,7 +27,7 @@ services:
       - "9870:9870"
       - "9000:9000"
     volumes:
-      - hadoop-namenode:/tmp/hadoop-root/dfs/name
+      - hadoop-namenode:/tmp/hadoop-hadoop
     networks:
       - hadoop_net
     restart: unless-stopped
@@ -35,6 +37,7 @@ services:
     container_name: hadoop-datanode
     hostname: datanode
     command: ["hdfs", "datanode"]
+    user: root
     environment:
       HADOOP_HOME: /opt/hadoop
       CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
@@ -42,7 +45,7 @@ services:
       HDFS-SITE.XML_dfs.permissions: "false"
       HDFS-SITE.XML_dfs.namenode.datanode.registration.ip-hostname-check: "false"
     volumes:
-      - hadoop-datanode:/data
+      - hadoop-datanode:/tmp/hadoop-hadoop
     networks:
       - hadoop_net
     depends_on:
@@ -54,6 +57,7 @@ services:
     container_name: hadoop-resourcemanager
     hostname: resourcemanager
     command: ["yarn", "resourcemanager"]
+    user: root
     environment:
       HADOOP_HOME: /opt/hadoop
       CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
@@ -74,6 +78,7 @@ services:
     container_name: hadoop-nodemanager
     hostname: nodemanager
     command: ["yarn", "nodemanager"]
+    user: root
     environment:
       HADOOP_HOME: /opt/hadoop
       CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
