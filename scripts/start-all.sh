@@ -1,20 +1,12 @@
 #!/bin/bash
-# ═══════════════════════════════════════════
-#  Start all components of the stack
-# ═══════════════════════════════════════════
-
 echo "► Starting Hadoop (HDFS + YARN)..."
-cd "$(dirname "$0")/../hadoop" && docker compose up -d && cd -
+(cd "$(dirname "$0")/../hadoop" && docker compose up -d)
 
-# Future components (uncomment as they are added):
-# echo "► Starting Hive..."
-# cd "$(dirname "$0")/../hive" && docker compose up -d && cd -
-
-# echo "► Starting Spark..."
-# cd "$(dirname "$0")/../spark" && docker compose up -d && cd -
-
-# echo "► Starting Kafka..."
-# cd "$(dirname "$0")/../kafka" && docker compose up -d && cd -
+echo "► Starting Hive (Metastore + HiveServer2)..."
+(cd "$(dirname "$0")/../hive" && docker compose up -d)
 
 echo ""
 echo "✅ Stack started"
+echo "   HDFS UI  → http://localhost:9870"
+echo "   YARN UI  → http://localhost:8088"
+echo "   Hive UI  → http://localhost:10002"

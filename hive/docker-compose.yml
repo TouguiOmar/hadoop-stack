@@ -1,0 +1,79 @@
+networks:
+  hadoop_hadoop_net:
+    external: true
+  hive_net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  hive-warehouse:
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: hive-postgres
+    hostname: postgres
+    environment:
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+      POSTGRES_DB: metastore
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - hive_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "hive"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  hive-metastore:
+    image: apache/hive:4.0.0
+    container_name: hive-metastore
+    hostname: hive-metastore
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      SERVICE_OPTS: "-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres:5432/metastore -Djavax.jdo.option.ConnectionUserName=hive -Djavax.jdo.option.ConnectionPassword=hive"
+      HIVE_CUSTOM_CONF_DIR: /hive-config
+    volumes:
+      - hive-warehouse:/opt/hive/data/warehouse
+      - ./lib/postgresql-42.7.3.jar:/opt/hive/lib/postgres.jar
+      - ./config/hive-site.xml:/hive-config/hive-site.xml
+      - ./config/core-site.xml:/hive-config/core-site.xml
+      - ./config/mapred-site.xml:/hive-config/mapred-site.xml
+      - ./config/yarn-site.xml:/hive-config/yarn-site.xml
+    networks:
+      - hive_net
+      - hadoop_hadoop_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  hiveserver2:
+    image: apache/hive:4.0.0
+    container_name: hive-hiveserver2
+    hostname: hiveserver2
+    environment:
+      SERVICE_NAME: hiveserver2
+      IS_RESUME: "true"
+      SERVICE_OPTS: "-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres:5432/metastore -Djavax.jdo.option.ConnectionUserName=hive -Djavax.jdo.option.ConnectionPassword=hive -Dhive.metastore.uris=thrift://hive-metastore:9083 -Dhive.notification.event.poll.interval=-1 -Dhive.materializedview.rewriting=false -Dhive.server2.enable.doAs=false -Dhive.server2.tez.initialize.default.sessions=false"
+      HIVE_CUSTOM_CONF_DIR: /hive-config
+    volumes:
+      - hive-warehouse:/opt/hive/data/warehouse
+      - ./lib/postgresql-42.7.3.jar:/opt/hive/lib/postgres.jar
+      - ./config/hive-site.xml:/hive-config/hive-site.xml
+      - ./config/core-site.xml:/hive-config/core-site.xml
+      - ./config/mapred-site.xml:/hive-config/mapred-site.xml
+      - ./config/yarn-site.xml:/hive-config/yarn-site.xml
+    ports:
+      - "127.0.0.1:10000:10000"
+      - "127.0.0.1:10002:10002"
+    networks:
+      - hive_net
+      - hadoop_hadoop_net
+    depends_on:
+      - hive-metastore
+    restart: on-failure
