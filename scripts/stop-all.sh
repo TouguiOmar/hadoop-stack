@@ -1,4 +1,7 @@
 #!/bin/bash
+echo "► Stopping Spark..."
+(cd "$(dirname "$0")/../spark" && docker compose down)
+
 echo "► Stopping Hive..."
 (cd "$(dirname "$0")/../hive" && docker compose down)
 
