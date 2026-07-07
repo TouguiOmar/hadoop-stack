@@ -23,7 +23,7 @@ Built for learning the full Hadoop ecosystem step by step.
 
 | Component | Version | Role | Status |
 |---|---|---|---|
-| Apache Spark | 3.5.1 | In-memory distributed processing | 🔜 Next |
+| Apache Spark | 3.5.3 | In-memory distributed processing | ✅ Running |
 | Apache Kafka | 7.6.0 | Event streaming | 🔜 Planned |
 | Apache Flink | 1.19 | Real-time stream processing | 🔜 Planned |
 | Apache Airflow | 2.9.1 | Pipeline orchestration | 🔜 Planned |
