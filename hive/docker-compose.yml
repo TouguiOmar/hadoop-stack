@@ -44,6 +44,7 @@ services:
       - ./config/core-site.xml:/hive-config/core-site.xml
       - ./config/mapred-site.xml:/hive-config/mapred-site.xml
       - ./config/yarn-site.xml:/hive-config/yarn-site.xml
+      - ./config/tez-site.xml:/hive-config/tez-site.xml
     networks:
       - hive_net
       - hadoop_hadoop_net
@@ -68,6 +69,7 @@ services:
       - ./config/core-site.xml:/hive-config/core-site.xml
       - ./config/mapred-site.xml:/hive-config/mapred-site.xml
       - ./config/yarn-site.xml:/hive-config/yarn-site.xml
+      - ./config/tez-site.xml:/hive-config/tez-site.xml
     ports:
       - "127.0.0.1:10000:10000"
       - "127.0.0.1:10002:10002"
