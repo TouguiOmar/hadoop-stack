@@ -9,3 +9,7 @@ echo "► Hive health..."
 echo ""
 echo "► Spark health..."
 (cd "$(dirname "$0")/../spark" && bash scripts/health.sh)
+
+echo ""
+echo "► Kafka health..."
+(cd "$(dirname "$0")/../kafka" && bash scripts/health.sh)
