@@ -1,7 +1,7 @@
 # hadoop-stack
 
-Production-ready Hadoop ecosystem stack using official Apache Docker images.
-Built for learning the full Hadoop ecosystem step by step.
+Production-ready modern data platform using official Apache Docker images.
+Built component by component for learning the full Hadoop ecosystem.
 
 ---
 
@@ -16,6 +16,11 @@ Built for learning the full Hadoop ecosystem step by step.
 | Hive Metastore | Hive 4.0.0 | Table metadata — PostgreSQL backend | ✅ Running |
 | HiveServer2 | Hive 4.0.0 | SQL queries via Beeline/JDBC | ✅ Running |
 | PostgreSQL | 15 | Hive metastore backend | ✅ Running |
+| Spark Master | Spark 3.5.3 | Manages Spark cluster | ✅ Running |
+| Spark Worker x2 | Spark 3.5.3 | Executes Spark jobs | ✅ Running |
+| Kafka Broker | Confluent 7.6.0 | Event streaming | ✅ Running |
+| Zookeeper | Confluent 7.6.0 | Kafka coordination | ✅ Running |
+| Kafka UI | Latest | Kafka web management | ✅ Running |
 
 ---
 
@@ -23,13 +28,12 @@ Built for learning the full Hadoop ecosystem step by step.
 
 | Component | Version | Role | Status |
 |---|---|---|---|
-| Apache Spark | 3.5.3 | In-memory distributed processing | ✅ Running |
-| Apache Kafka | 7.6.0 | Event streaming | 🔜 Planned |
-| Apache Flink | 1.19 | Real-time stream processing | 🔜 Planned |
+| Apache Flink | 1.19 | Real-time stream processing | 🔜 Next |
 | Apache Airflow | 2.9.1 | Pipeline orchestration | 🔜 Planned |
 | Apache Ranger | 2.4.0 | Authorization and audit | 🔜 Planned |
 | MIT Kerberos | 1.21 | Authentication | 🔜 Planned |
 | Grafana | 10.4.0 | Monitoring dashboards | 🔜 Planned |
+| Tez | 0.10.3 | Hive execution engine (see TEZ_TODO.md) | 🔧 Pending fix |
 
 ---
 
@@ -37,33 +41,9 @@ Built for learning the full Hadoop ecosystem step by step.
 
 - Docker Engine 24+
 - Docker Compose v2+
-- 24 GB RAM recommended (Contabo Cloud VPS 30)
+- 24 GB RAM (Contabo Cloud VPS 30)
 
 ---
-
-## Project Structure
-hadoop-stack/
-├── hadoop/                        # HDFS + YARN
-│   ├── docker-compose.yml
-│   ├── format-check.sh
-│   └── scripts/
-│       ├── start.sh
-│       └── health.sh
-├── hive/                          # Hive + PostgreSQL metastore
-│   ├── docker-compose.yml
-│   ├── config/
-│   │   ├── hive-site.xml
-│   │   ├── core-site.xml
-│   │   ├── mapred-site.xml
-│   │   └── yarn-site.xml
-│   ├── lib/
-│   │   └── postgresql-42.7.3.jar
-│   └── scripts/
-├── scripts/                       # Root orchestration
-│   ├── start-all.sh
-│   ├── stop-all.sh
-│   └── health.sh
-└── README.md
 
 ---
 
@@ -77,15 +57,20 @@ bash scripts/start-all.sh
 
 ---
 
-## Access
+## Access (via SSH tunnel)
 
-All UIs are accessible via SSH tunnel only — no public ports exposed.
+Start tunnel from Windows:
+```powershell
+ssh contabo-tunnel
+```
 
 | UI | URL | Credentials |
 |---|---|---|
 | HDFS NameNode | http://localhost:9870 | none |
 | YARN ResourceManager | http://localhost:8088 | none |
 | HiveServer2 Web UI | http://localhost:10002 | none |
+| Spark Master UI | http://localhost:8082 | none |
+| Kafka UI | http://localhost:8085 | none |
 
 ---
 
@@ -120,8 +105,7 @@ docker exec hadoop-namenode hdfs dfs -rm -r /user/otougui
 docker exec -it hive-hiveserver2 beeline -u "jdbc:hive2://localhost:10000" -n hive
 ```
 
-Required session settings before running queries:
-
+Required session settings:
 ```sql
 SET mapreduce.framework.name=yarn;
 SET yarn.resourcemanager.address=resourcemanager:8032;
@@ -131,7 +115,6 @@ SET mapreduce.reduce.env=HADOOP_MAPRED_HOME=/opt/hadoop;
 ```
 
 Example queries:
-
 ```sql
 SHOW DATABASES;
 CREATE DATABASE learning;
@@ -157,6 +140,49 @@ ORDER BY avg_salary DESC;
 
 ---
 
+## Spark — Submit Jobs
+
+```bash
+# Submit a PySpark job
+docker exec spark-master /opt/spark/bin/spark-submit \
+  --master spark://spark-master:7077 \
+  /opt/spark-jobs/your_job.py
+```
+
+Available example jobs in `spark/jobs/`:
+
+| Job | Description |
+|---|---|
+| test_spark.py | Basic DataFrame operations |
+| spark_hdfs.py | Read employees data from HDFS |
+| spark_sql_hive.py | Spark SQL on Hive metastore + write Parquet |
+
+---
+
+## Kafka — CLI Commands
+
+```bash
+# Create a topic
+docker exec kafka-broker kafka-topics \
+  --bootstrap-server localhost:9092 \
+  --create --topic events \
+  --partitions 3 --replication-factor 1
+
+# List topics
+docker exec kafka-broker kafka-topics \
+  --bootstrap-server localhost:9092 --list
+
+# Produce messages
+docker exec -it kafka-broker kafka-console-producer \
+  --bootstrap-server localhost:9092 --topic events
+
+# Consume messages
+docker exec -it kafka-broker kafka-console-consumer \
+  --bootstrap-server localhost:9092 --topic events --from-beginning
+```
+
+---
+
 ## Production Considerations
 
 ### Security
@@ -169,17 +195,17 @@ ORDER BY avg_salary DESC;
 ### High Availability
 - Run Active + Standby NameNode with ZooKeeper failover
 - Run multiple ResourceManagers
-- Use minimum 3 DataNodes
+- Use minimum 3 DataNodes and 3 Kafka brokers
 - Set `dfs.replication=3`
 
 ### Monitoring
 - Add Prometheus JMX exporter to each service
-- Build Grafana dashboards for HDFS, YARN, Hive metrics
-- Alert on dead DataNodes, disk space, under-replicated blocks
+- Build Grafana dashboards for HDFS, YARN, Hive, Spark, Kafka metrics
+- Alert on dead DataNodes, consumer lag, disk space
 
 ### Sizing Guidelines
 
-| Cluster Size | DataNodes | RAM per Node | Replication |
+| Cluster Size | Nodes | RAM per Node | Replication |
 |---|---|---|---|
 | Dev (this stack) | 1 | 24 GB | 1 |
 | Small | 5–10 | 32–64 GB | 3 |
