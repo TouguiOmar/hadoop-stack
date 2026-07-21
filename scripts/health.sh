@@ -13,3 +13,7 @@ echo "► Spark health..."
 echo ""
 echo "► Kafka health..."
 (cd "$(dirname "$0")/../kafka" && bash scripts/health.sh)
+
+echo ""
+echo "► Flink health..."
+(cd "$(dirname "$0")/../flink" && bash scripts/health.sh)

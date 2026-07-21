@@ -1,4 +1,7 @@
 #!/bin/bash
+echo "► Stopping Flink..."
+(cd "$(dirname "$0")/../flink" && docker compose down)
+
 echo "► Stopping Kafka..."
 (cd "$(dirname "$0")/../kafka" && docker compose down)
 

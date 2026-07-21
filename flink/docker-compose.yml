@@ -1,0 +1,49 @@
+networks:
+  hadoop_hadoop_net:
+    external: true
+  kafka_kafka_net:
+    external: true
+  flink_net:
+    driver: bridge
+
+services:
+
+  jobmanager:
+    build: .
+    container_name: flink-jobmanager
+    hostname: flink-jobmanager
+    command: jobmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: flink-jobmanager
+        jobmanager.memory.process.size: 1024m
+        rest.port: 8081
+    ports:
+      - "127.0.0.1:8081:8081"
+    volumes:
+      - ./jobs:/opt/flink/jobs
+    networks:
+      - flink_net
+      - hadoop_hadoop_net
+      - kafka_kafka_net
+    restart: unless-stopped
+
+  taskmanager:
+    build: .
+    container_name: flink-taskmanager
+    hostname: flink-taskmanager
+    command: taskmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.memory.process.size: 2048m
+        taskmanager.numberOfTaskSlots: 4
+    volumes:
+      - ./jobs:/opt/flink/jobs
+    networks:
+      - flink_net
+      - hadoop_hadoop_net
+      - kafka_kafka_net
+    depends_on:
+      - jobmanager
+    restart: unless-stopped
