@@ -28,7 +28,7 @@ Built component by component for learning the full Hadoop ecosystem.
 
 | Component | Version | Role | Status |
 |---|---|---|---|
-| Apache Flink | 1.19 | Real-time stream processing | 🔜 Next |
+| Apache Flink | 1.19 | Real-time stream processing | ✅ Running |
 | Apache Airflow | 2.9.1 | Pipeline orchestration | 🔜 Planned |
 | Apache Ranger | 2.4.0 | Authorization and audit | 🔜 Planned |
 | MIT Kerberos | 1.21 | Authentication | 🔜 Planned |
